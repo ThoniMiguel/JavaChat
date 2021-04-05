@@ -9,6 +9,7 @@ import java.net.Socket;
 public class ServerWorker extends Thread{
 
     private final Socket clientSocket;
+    private String login = null;
 
     public ServerWorker(Socket clientSocket) {
         this.clientSocket = clientSocket;
@@ -36,12 +37,37 @@ public class ServerWorker extends Thread{
                 String cmd = tokens[0];
                 if("quit".equalsIgnoreCase(cmd)){
                     break;
-                }else{
+                }else if("login".equalsIgnoreCase(cmd)){
+                    handleLogin(outputStream, tokens);
+
+                }
+
+                else{
                     String msg = "Unknown " + cmd + "\n";
                     outputStream.write(msg.getBytes());
                 }
             }
         }
         clientSocket.close();
+    }
+
+    private void handleLogin(OutputStream outputStream, String[] tokens) throws IOException {
+        if(tokens.length == 3) {
+            String login = tokens[1];
+            String password = tokens[2];
+
+            if((login.equals("guest") && password.equals("guest")) || (login.equals("thoni") && password.equals("thoni"))  ){
+                String msg = "ok login\n";
+                outputStream.write(msg.getBytes());
+                this.login = login;
+                System.out.println("User '" + login +"' logged in ");
+            }else{
+                String msg = "error login\n";
+                outputStream.write(msg.getBytes());
+            }
+        }else{
+            String msg = "Missing arguments (user password)\n";
+            outputStream.write(msg.getBytes());
+        }
     }
 }
